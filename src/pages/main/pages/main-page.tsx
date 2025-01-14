@@ -6,6 +6,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useToast } from "@/components/ui/use-toast";
+import { API_BASE_URL } from "@/config/axios.config";
+import { IAppointment } from "@/interfaces/appointments.interface";
 import { AppointmentPage } from "@/pages/appointments/page/appointment-page";
 import { CompanyPage } from "@/pages/company/page/company-page";
 import { CustomersPage } from "@/pages/customers/page/customers-page";
@@ -13,8 +16,27 @@ import Hero from "@/pages/dashboard/components/hero";
 import { DashboardPage } from "@/pages/dashboard/page";
 import { MembersPage } from "@/pages/members/page/members-page";
 import { ServicesPage } from "@/pages/services/page/services-page";
+import { useEffect } from "react";
 import { Route, Routes } from "react-router";
+import { io } from "socket.io-client";
+
+const socket = io(API_BASE_URL); // URL del backend
+
 export default function MainPage() {
+  const { toast } = useToast();
+  useEffect(() => {
+    socket.on("nuevo-turno", (turno: IAppointment) => {
+      console.log("Nuevo turno recibido", turno);
+      toast({
+        title: "Nuevo Turno 🎉",
+        description: `${turno.name} agendó un turno a las ${turno.time}hs`,
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
   return (
     <div className="h-full w-full  flex flex-col  overflow-hidden    text-xs ">
       <SidebarProvider>
